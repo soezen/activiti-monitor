@@ -1,0 +1,293 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html>
+	<head>
+		<style>
+		
+			.selected .djs-visual rect {
+				fill: lightblue;
+			}
+			.overlay div {
+				top: 50%;
+				left: 50%;
+				position: absolute;
+			}
+			.overlay div.icon {
+				height: 0;
+				width: 0;
+				margin-top: -34px;
+			}	
+			.overlay div.text {
+				margin-top: 12px;
+				margin-left: -15px;
+			}
+			.overlay .fa-spin {
+				animation-timing-function: ease;
+				animation-duration: 1.5s;
+			}
+			.overlay .fa-spin.fa-3x {
+				height: 46px;
+			}
+			.overlay {
+				position: absolute;
+				top: 0;
+				left: 0;
+				width: 100%;
+				height: 100%;
+				z-index: 10;
+				background-color: rgba(0,0,0,0.5);
+				color: lightgray;
+			}
+			body > .overlay {
+				position: fixed;
+			}
+			body {
+				font: menu;
+				font-size: inherit;
+				color: steelblue;
+				margin: 0;
+			}
+			marker > path,
+			g.djs-shape g.djs-visual path {
+				fill: lightgrey;
+			}
+			marker.finished > path {
+				fill: yellowgreen;
+			}
+			g.finished > g.djs-visual > *:not(text) {
+				stroke: yellowgreen;
+			}
+			g.finished > g.djs-visual > *:not(text):not(path) {
+				fill: greenyellow;
+				fill-opacity: 0.5;
+			}
+			g.finished.djs-shape > g.djs-visual > path {
+				fill: yellowgreen;
+			}
+			g.finished.selected > g.djs-visual > *:not(text) {
+				fill-opacity: 0.8;
+			}
+			g.running > g.djs-visual > *:not(text) {
+				stroke: darkorange;
+			}
+			g.running > g.djs-visual > *:not(text):not(path) {
+				fill: orange;
+				fill-opacity: 0.5;
+			}
+			g.running.djs-shape > g.djs-visual > path {
+				fill: darkorange;
+			}
+			g.running.selected > g.djs-visual > *:not(text) {
+				fill-opacity: 0.8;
+			}
+			g:not(.finished):not(.running) > g.djs-visual > *:not(text) {
+				stroke: lightgrey;
+			}
+			g:not(.finished):not(.running) > g.djs-visual > *:not(text):not(path) {
+				fill: lightgrey;
+				fill-opacity: 0.5;
+			}
+			g.selected:not(.finished):not(.running) > g.djs-visual > *:not(text) {
+				fill-opacity: 0.8;
+			}
+			.input_group {
+				padding: 5px;
+			}
+			.input_group > label {
+				text-align: right;
+				width: 200px;
+				display: inline-block;
+				padding-right: 10px;
+			}
+			.button_group {
+				text-align: right;
+				padding: 5px;
+			}
+			.button_group input[type=submit] {
+				background-color: white;
+				border: none;
+				border-radius: 2px;
+				padding: 10px 20px;
+				margin: 15px;
+				font-weight: bold;
+				color: steelblue;
+			}
+			#process_form, #process_info {
+				background-color: steelblue;
+				border-radius: 20px;
+				color: white;
+				margin: 10px;
+			}
+			#process_form .header, #process_form .summary, #process_info {
+				font-size: larger;
+				font-weight: bold;
+				padding: 15px;
+			}
+			#process_form .summary {
+				display: none;
+			}
+			#process_form .summary span {
+				padding: 5px 0;
+			}
+			#process_form .status {
+				display: none;
+				background-color: goldenrod;
+				padding: 15px;
+				border-radius: 20px;
+			}
+			.diagram {
+				margin: 20px;
+				overflow: auto;
+				height: 100%;
+				border: solid 5px;
+				border-radius: 20px;
+			}
+			#process_info {
+				display: none;
+				position: fixed;
+				margin: 10px;
+				right: 0;
+				bottom: 0;
+				opacity: 0.5;
+			}
+			#process_info label {
+				font-weight: normal;
+				margin-right: 10px;
+			}
+			.link {
+				font-weight: normal;
+				font-size: smaller;
+				float: right;
+				padding-right: 5px;
+			}
+			.link:hover {
+				text-decoration: underline;
+				cursor: default;
+			}
+			#activity_input {
+				font-size: small;
+				font-weight: normal;
+			}
+			.bjs-powered-by {
+				bottom: inherit !important;
+				top: 15px;
+				opacity: 0.2;
+				z-index: -100 !important;
+			}
+			.call-activity {
+				cursor: pointer;
+			}
+			.diagram > div {
+				padding: 20px;
+			}
+			.diagram .header {
+				background-color: lightblue;
+				border-bottom: solid;
+				font-weight: bold;
+			}
+			.diagram .header span {
+				display: inline-block;
+				width: 33%;
+				text-align: center;
+			}
+			.diagram .header span:last-child {
+				text-align: end;
+			}
+			.diagram .header span:first-child {
+				text-align: start;
+			}
+			.diagram .variables {
+				position: fixed;
+			}
+			.variables ul {
+				margin: 0;
+				padding: 0;
+				list-style: none;
+			}
+			.variables ul li span.variable-name {
+				font-weight: bold;
+				padding-right: 10px;
+			}
+			.diagram .content > div {
+				display: inline-block;
+				overflow: auto;
+			}
+			.djs-overlay-properties {
+				width: 160px;
+				text-align: center;
+				background-color: white;
+			}
+		</style>
+		<link rel="stylesheet" href="css/font-awesome.css"></link>
+		<script src="js/jquery-2.2.0.min.js"></script>
+		<script src="js/bpmn-viewer.min.js"></script>
+		<!-- <script src="js/index.js"></script> -->
+		<script src="js/cache.js"></script>
+		<script src="js/listeners.js"></script>
+		<script src="js/diagram-viewer.js"></script>
+		<script src="js/gui.js"></script>
+		<script src="js/client.js"></script>
+		<script src="js/activiti.js"></script>
+		<script src="js/ethab.js"></script>
+	</head>
+	<body onload="activiti.init()">
+		<h1>ETHAB Activiti Monitor</h1>
+		
+		<form id="process_form" onsubmit="activiti.search(); return false;">
+			<div class="summary">
+				<span id="process_name"></span>
+				<span id="process_variables"></span>
+				<span id="process_state">[finished]</span>
+				<span class="link" onclick="openProcessForm()">
+					edit
+				</span>
+			</div>
+			<div class="status">
+				<span id="status"></span>
+			</div>
+			<div class="content">
+				<div class="header">Find activiti process</div>
+				<div class="input_group">
+					<label for="process_definition_key">Process</label>
+					<select id="process_definition_key" required>
+						<option></option>
+					</select>
+				</div>
+				<div class="input_group">
+					<label for="application_id">Application ID</label>
+					<input id="application_id" type="text" required />
+				</div>
+				<div class="input_group">
+					<label>State</label>
+					<span>
+						<input id="state_active" type="radio" name="state" value="false" checked="checked" />
+						<label for="state_active">Active</label>
+						<input id="state_finished" type="radio" name="state" value="true" />
+						<label for="state_finished">Finished</label>
+					</span>
+				</div>
+				<div class="button_group">
+					<input type="submit" value="Find" />
+				</div>
+			</div>
+		</form>
+		<div id="status"></div>
+		<div id="process_info">
+			<div class="output_group">
+				<label for="activity_type">Type</label><span id="activity_type"></span>
+			</div>
+			<div class="output_group">
+				<label for="activity_name">Name</label><span id="activity_name"></span>
+			</div>
+			<div class="output_group">
+				<label for="activity_start">Start Time</label><span id="activity_start"></span>
+			</div>
+			<div class="output_group">
+				<label for="activity_end">End Time</label><span id="activity_end"></span>
+			</div>
+		</div>
+		<div id="diagrams"></div>
+	</body>
+	
+</html>
