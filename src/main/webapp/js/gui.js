@@ -58,7 +58,6 @@ var gui = (function() {
 	}
 	
 	function getProperties(element) {
-		console.log(element);
 		
 		var contentProperties = $(document.createElement('div'));
 		contentProperties.addClass('properties');
@@ -83,8 +82,12 @@ var gui = (function() {
 		diagramViewer.addActivity(activity);
 	}
 	
+	function loadActivities() {
+		var diagramViewer = $('.diagram.active').data('bpmn');
+		diagramViewer.loadActivities();
+	}
+	
 	function showVariable(variable) {
-		console.log(variable);
 		var div = $('.diagram.active .variables ul');
 		var li = $(document.createElement('li'));
 		div.append(li);
@@ -189,6 +192,7 @@ var gui = (function() {
 		showError: showError,
 		getProperties: getProperties,
 		showActivity: showActivity,
+		loadActivities: loadActivities,
 		showVariable: showVariable,
 		formatTime: formatTime
 	}

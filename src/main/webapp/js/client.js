@@ -45,7 +45,8 @@ var client = (function() {
 			if (data.data.length == 0) {
 				listeners.notify(eventType + '.not_found');
 			} else if (data.data.length > 1) {
-				listeners.notify(eventType + '.too_many_results');
+//				listeners.notify(eventType + '.too_many_results');
+				listeners.notify(eventType + '.loaded', data.data[1]);
 			} else {
 				listeners.notify(eventType + '.loaded', data.data[0]);
 			}

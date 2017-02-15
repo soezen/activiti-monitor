@@ -24,6 +24,7 @@ var activiti = (function() {
 		listeners.on('process_instance.not_found', gui.showError, { message: 'No process found for given criteria.' });
 		listeners.on('activity.loaded', gui.showActivity);
 		listeners.on('variable.loaded', gui.showVariable);
+		listeners.on('end.fetch.activities', gui.loadActivities);
 	}
 		
 	function processIsSame(event, item) {

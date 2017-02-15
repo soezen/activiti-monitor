@@ -95,65 +95,58 @@ function DiagramViewer(container) {
 	}
 	
 	function loadActivity(activity) {
-		var activityType = activity.activityType;
-		var canvas = bpmnViewer.get('canvas');
 		var registry = bpmnViewer.get('elementRegistry');
 		var element = registry.get(activity.activityId);
 		element.activity = activity;
-
-		if (activityType === 'parallelGateway') {
-			element.finished = element.incoming.length;
-		} else if (activity.startTime && activity.endTime) {
-			canvas.addMarker(activity.activityId, 'finished');
-		} else if (activity.startTime) {
-			canvas.addMarker(activity.activityId, 'running');
-		}
-		
-		loadFlows(activity.activityId);
 	}
 	
-	function loadFlows(activityId) {
-		var registry = bpmnViewer.get('elementRegistry');
+	function loadActivities() {
 		var canvas = bpmnViewer.get('canvas');
-		var element = registry.get(activityId);
-		var flows = element.outgoing.concat(element.incoming);
-		
-		flows.forEach(function (flow) {
+		var registry = bpmnViewer.get('elementRegistry');
+
+		registry.forEach(function (element) {
+			var activity = element.activity;
 			
-			if (isFlowTaken(flow)) {
-				canvas.addMarker(flow, 'finished');
-				colorEndMarker(flow.id);
-				
-				var target = flow.businessObject.targetRef;
-				if (isParallelGateway(target)) {
-					var targetElement = registry.get(target.id);
-					targetElement.finished--;
-					if (targetElement.finished == 0) {
-						canvas.addMarker(target, 'finished');
-						canvas.removeMarker(target, 'running');
-					} else {
-						canvas.addMarker(target, 'running');
-					}
+			if (isFlow(element)) {
+				if (isFlowTaken(element)) {
+					canvas.addMarker(element, 'finished');
+					colorEndMarker(element.id);
 				}
-			
+			} else if (isCancelled(activity)) {
+				canvas.addMarker(activity.activityId, 'cancelled');
+			} else if (isFinished(activity)) {
+				canvas.addMarker(activity.activityId, 'finished');
+			} else if (isStarted(activity)) {
+				canvas.addMarker(activity.activityId, 'running');
 			}
-			
 		});
 		
 	}
 	
+	
 	function isFlowTaken(flow) {
-		var source = flow.businessObject.sourceRef;
-		var target = flow.businessObject.targetRef;
+		var registry = bpmnViewer.get('elementRegistry');
+		var source = registry.get(flow.source.id);
+		var target = registry.get(flow.target.id);
 		
-		return isParallelGateway(source)
-			|| (hasFinishedMarker(source) 
-				&& (!isExclusiveGateway(source) || hasFinishedMarker(target) || hasRunningMarker(target)));
+		if (isParallelGateway(source)) {
+			for (var i in source.incoming) {
+				var incoming = source.incoming[i];
+				if (!isFlowTaken(incoming)) {
+					return false;
+				}
+			}
+			return true;
+		}
+		
+		return isFinished(source.activity) && isStarted(target.activity);
 	}
 	
 	function colorEndMarker(flowId) {
+		// TODO do not color annotation connections
 		var path = $('g[data-element-id=' + flowId + '] > .djs-visual > path');
 		var markerUrl = path.css('marker-end');
+		if (!markerUrl) return;
 		var markerName = markerUrl.substring('url("'.length, markerUrl.length - '#)'.length);
 		if (!$(markerName).hasClass('finished')) {
 			var marker = $(markerUrl.substring('url("'.length, markerUrl.length - '")'.length));
@@ -165,26 +158,36 @@ function DiagramViewer(container) {
 		}
 	}
 	
-	function hasFinishedMarker(element) {
-		var canvas = bpmnViewer.get('canvas');
-		return canvas.hasMarker(element.id, 'finished');
+	function isCancelled(activity) {
+		// TODO fetch procinst if type is callActivity and check end time and end activity,
+		// if end time is not null but end activity is, then the activity was cancelled
+		return isFinished(activity)
+			&& activity.endActivityId === null;
 	}
 	
-	function hasRunningMarker(element) {
-		var canvas = bpmnViewer.get('canvas');
-		return canvas.hasMarker(element.id, 'running');
+	function isFinished(activity) {
+		return activity && activity.endTime !== null;
+	}
+	
+	function isStarted(activity) {
+		return activity && activity.startTime !== null;
 	}
 	
 	function isParallelGateway(element) {
-		return element.$type === 'bpmn:ParallelGateway';
+		return element.type === 'bpmn:ParallelGateway';
 	}
 	
 	function isExclusiveGateway(element) {
-		return element.$type === 'bpmn:ExclusiveGateway';
+		return element.type === 'bpmn:ExclusiveGateway';
+	}
+	
+	function isFlow(element) {
+		return element.type === 'bpmn:SequenceFlow';
 	}
 		
 	return {
 		load: load,
-		addActivity: loadActivity
+		addActivity: loadActivity,
+		loadActivities: loadActivities
 	}
 }
